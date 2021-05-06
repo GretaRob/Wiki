@@ -1,9 +1,10 @@
 from django.shortcuts import render
-
+from django.contrib import messages
 from . import util
 import markdown2
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django import forms
 
 
 def index(request):
@@ -33,3 +34,37 @@ def search(request):
         return render(request, 'encyclopedia/search.html', {
             'results': results
         })
+
+
+class NewEntryForm(forms.Form):
+    entry = forms.CharField(label='New Entry')
+    content = forms.CharField(widget=forms.Textarea(), label='')
+
+
+def create(request):
+    if request.method == 'POST':
+        form = NewEntryForm(request.POST)
+        if form.is_valid():
+            # Isolate the entry from the 'cleaned' version of form data
+            entry = form.cleaned_data["entry"]
+            content = form.cleaned_data['content']
+            entries = util.list_entries()
+
+            if entry in entries:
+                messages.add_message(
+                    request, messages.ERROR, 'The page already exists')
+                return render(request, 'encyclopedia/create.html', {'form': form})
+
+            else:
+                util.save_entry(entry, content)
+
+                return render(request, 'encyclopedia/entry.html', {
+                    'content': markdown2.markdown(util.get_entry(entry))})
+
+        else:
+            # If the form is invalid, re-render the page with existing information.
+            return render(request, "create.html", {
+                "form": form
+            })
+
+    return render(request, 'encyclopedia/create.html', {'form': NewEntryForm()})
