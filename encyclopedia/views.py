@@ -68,3 +68,18 @@ def create(request):
             })
 
     return render(request, 'encyclopedia/create.html', {'form': NewEntryForm()})
+
+
+def edit(request, title):
+    if request.method == 'GET':
+
+        content = util.get_entry(entry)
+        form = NewEntryForm({'entry': entry, 'content': content})
+        return render(request, 'encyclopedia/edit.html', {'form': form, 'entry': entry})
+
+    form = NewEntryForm(request.POST)
+    if form.is_valid():
+        entry = form.cleaned_data.get('entry')
+        content = form.cleaned_data.get('content')
+        util.save_entry(title=entry, content=content)
+        return HttpResponseRedirect(reverse('entry', kwargs={'entry': search}))
