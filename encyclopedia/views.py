@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from . import util
 import markdown2
@@ -71,15 +71,21 @@ def create(request):
 
 
 def edit(request, title):
-    if request.method == 'GET':
 
-        content = util.get_entry(entry)
-        form = NewEntryForm({'entry': entry, 'content': content})
-        return render(request, 'encyclopedia/edit.html', {'form': form, 'entry': entry})
+    if request.method == "GET":
+
+        content = util.get_entry(title)
+        form = NewEntryForm({"title": title, "content": content})
+        return render(
+            request,
+            "encyclopedia/edit.html",
+            {"form": form, "title": title},
+        )
 
     form = NewEntryForm(request.POST)
     if form.is_valid():
-        entry = form.cleaned_data.get('entry')
-        content = form.cleaned_data.get('content')
-        util.save_entry(title=entry, content=content)
-        return HttpResponseRedirect(reverse('entry', kwargs={'entry': search}))
+        title = form.cleaned_data.get("title")
+        content = form.cleaned_data.get("content")
+
+        util.save_entry(title=title, content=content)
+        return redirect('entry', title)
