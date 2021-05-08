@@ -5,6 +5,7 @@ import markdown2
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django import forms
+import random
 
 
 def index(request):
@@ -89,3 +90,9 @@ def edit(request, title):
 
         util.save_entry(title=title, content=content)
         return redirect('entry', title)
+
+
+def random_entry(request):
+    list_entries = util.list_entries()
+    title = random.choice(list_entries)
+    return redirect('entry', title)
